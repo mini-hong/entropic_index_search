@@ -39,7 +39,7 @@ def np_max_q(q_logits,q=1):
 # In[4]:
 
 ps = []
-for i in range(20):
+for i in range(50):
     p = np.random.random_sample(50)
     #p.sort()
     #p = p[::-1]
@@ -107,7 +107,7 @@ Ns = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20]
 #Ns = [12, 15]
 #Ns = [20, 30]
 qs = [0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0]
-T = 20000
+T = 5000
 best_qs = []
 #p = np.random.random_sample(50)
 for N in Ns:
@@ -125,30 +125,33 @@ for N in Ns:
                 r = mab.step(a)
                 agent.update(a, r, prob)
                 rews[pi][t] = r
-        avg_rews = mov_avg_all(rews, 1000, targs)
+        avg_rews = mov_avg_all(rews, 100, targs)
         avg_rews[avg_rews > 1.] = 1.
         total_rews.append(avg_rews)
         for i in range(50, len(avg_rews)):
             if avg_rews[i] > 0.95:
                 print('N : {}, q : {}, ended {}'.format(N, qs[qi], i))
                 end_steps.append(i)
+                with open('mab/end_step.txt', 'a') as f:
+                    f.write('{} {} {}\n'.format(N, qs[qi], i))
                 break
             if i == len(avg_rews) - 1:
                 print('N : {}, q : {}, ended {}'.format(N, qs[qi], len(avg_rews)))
                 end_steps.append(T)
-    with open('mab2_6/mab_N_{}'.format(N), 'w') as f:
+                with open('mab/end_step.txt', 'a') as f:
+                    f.write('{} {} {}\n'.format(N, qs[qi], len(avg_rews)))
+    with open('mab/mab_N_{}'.format(N), 'w') as f:
         for j in range(T):
-            if (j+1) % 50 == 0:
-                f.write('{} '.format(j))
-                for i in range(len(total_rews)):
-                    f.write('{} '.format(total_rews[i][j]))
-                f.write('\n')
+            f.write('{} '.format(j))
+            for i in range(len(total_rews)):
+                f.write('{} '.format(total_rews[i][j]))
+            f.write('\n')
     best_q = qs[np.argmin(end_steps)]
     best_qs.append(best_q)
     print('=====================')
     print('N : {}, best q : {}'.format(N, best_q))
     print('=====================')
-    with open('mab2_6/results.txt', 'a') as f:
+    with open('mab/results.txt', 'a') as f:
         f.write('{} {} \n'.format(N, best_q))
 
 from matplotlib import pyplot as plt
